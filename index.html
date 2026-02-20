@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeerSend – Web3 Peer-to-Peer Crypto Transfers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<style>
+:root {
+  --bg-deep:    #0e1120;
+  --bg-mid:     #131729;
+  --bg-card:    #1a1f35;
+  --bg-panel:   #161b2e;
+  --border:     rgba(255,255,255,0.07);
+  --border-hi:  rgba(124,111,247,0.5);
+  --purple:     #7c6ff7;
+  --violet:     #a78bfa;
+  --pink:       #c084fc;
+  --blue:       #818cf8;
+  --text:       #e2e8f0;
+  --text-muted: #8892a4;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --glow:       0 0 40px rgba(124,111,247,0.2);
+  --font-head:  'Syne', sans-serif;
+  --font-body:  'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 3px; }
+
+/* =================== NAVBAR =================== */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(14,17,32,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.logo-icon { flex-shrink: 0; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 1px;
+  background: var(--purple);
+  transform: scaleX(0);
+  transition: transform 0.25s;
+}
+.nav-link:hover { color: var(--text); }
+.nav-link:hover::after { transform: scaleX(1); }
+
+.btn-connect-nav {
+  background: transparent;
+  border: 1.5px solid rgba(124,111,247,0.7);
+  color: var(--violet);
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-connect-nav:hover {
+  background: rgba(124,111,247,0.12);
+  border-color: var(--violet);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(124,111,247,0.25);
+}
+
+/* =================== HERO =================== */
+.hero {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  padding: 120px 32px 80px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0e1120 0%, #13112b 45%, #1a1235 70%, #0e1120 100%);
+}
+
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 80% at 65% 40%, rgba(168,100,255,0.22) 0%, transparent 65%),
+              radial-gradient(ellipse 50% 60% at 80% 60%, rgba(124,111,247,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+  margin: 0 auto 0 calc((100vw - 1100px)/2);
+  padding-left: 0;
+}
+
+@media (max-width: 1140px) { .hero-content { margin-left: 32px; } }
+
+.hero-title {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.18;
+  color: #fff;
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin-bottom: 36px;
+  font-weight: 400;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+  color: #fff;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(124,111,247,0.4);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(124,111,247,0.55);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  padding: 13px 28px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.05);
+}
+
+/* Orbs */
+.hero-visual { position: absolute; right: 0; top: 0; width: 50%; height: 100%; pointer-events: none; z-index: 1; }
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+}
+.orb1 {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(168,100,255,0.5) 0%, transparent 70%);
+  top: -60px; right: -80px;
+  animation: float 8s ease-in-out infinite;
+}
+.orb2 {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(124,111,247,0.4) 0%, transparent 70%);
+  bottom: -40px; right: 120px;
+  animation: float 10s ease-in-out infinite reverse;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.04); }
+}
+
+/* =================== SHARED =================== */
+.section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 40px;
+}
+
+/* =================== HOW IT WORKS =================== */
+.how-it-works {
+  background: var(--bg-mid);
+  padding: 80px 0;
+}
+
+.steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+  padding: 24px;
+  border-radius: var(--radius);
+  transition: background 0.25s, transform 0.25s;
+  cursor: default;
+}
+.step:hover {
+  background: rgba(124,111,247,0.07);
+  transform: translateY(-4px);
+}
+
+.step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--violet));
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(124,111,247,0.4);
+}
+
+.step-info h3 {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.step-info p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.step-arrow {
+  color: var(--text-muted);
+  font-size: 1.8rem;
+  padding-top: 18px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* =================== FEATURES =================== */
+.features-section {
+  background: var(--bg-deep);
+  padding: 80px 0;
+}
+
+.features-grid-outer {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 60px;
+  align-items: start;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 0;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  cursor: default;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 20px rgba(124,111,247,0.12);
+  border-color: rgba(124,111,247,0.3);
+}
+
+.feature-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(124,111,247,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-card h4 {
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.feature-card p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* =================== SEND PANEL =================== */
+.send-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px 28px 24px;
+  position: sticky;
+  top: 84px;
+}
+
+.panel-title {
+  font-family: var(--font-head);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.field-group {
+  margin-bottom: 18px;
+}
+.field-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.field-group input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field-group input::placeholder { color: rgba(255,255,255,0.2); }
+.field-group input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124,111,247,0.15);
+}
+
+.amount-wrap {
+  position: relative;
+}
+.amount-wrap input { padding-right: 52px; }
+.eth-label {
+  position: absolute;
+  right: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.field-error {
+  display: block;
+  font-size: 0.78rem;
+  color: #f87171;
+  margin-top: 5px;
+  min-height: 16px;
+}
+
+.btn-send {
+  width: 100%;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+  color: #fff;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 20px rgba(124,111,247,0.4);
+  margin-bottom: 14px;
+  margin-top: 6px;
+  letter-spacing: 0.01em;
+}
+.btn-send:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124,111,247,0.55);
+}
+.btn-send:active { transform: translateY(0); }
+.btn-send.loading { opacity: 0.7; pointer-events: none; }
+
+/* Ripple */
+.btn-send .ripple, .btn-primary .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0);
+  animation: rippleAnim 0.5s linear;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+.status-text {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+.status-text.success { color: #34d399; }
+.status-text.error   { color: #f87171; }
+.status-text.sending { color: var(--violet); }
+
+/* =================== TRANSACTIONS =================== */
+.transactions {
+  background: var(--bg-mid);
+  padding: 80px 0;
+}
+
+.table-wrap {
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tx-table thead tr {
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+}
+.tx-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tx-row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+  animation: fadeInRow 0.5s ease both;
+}
+.tx-row:last-child { border-bottom: none; }
+.tx-row:hover { background: rgba(124,111,247,0.06); }
+
+@keyframes fadeInRow {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tx-row:nth-child(1) { animation-delay: 0.1s; }
+.tx-row:nth-child(2) { animation-delay: 0.2s; }
+.tx-row:nth-child(3) { animation-delay: 0.3s; }
+
+.tx-table td {
+  padding: 16px 20px;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.addr {
+  font-family: 'Courier New', monospace;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.arrow-cell {
+  padding: 16px 4px !important;
+  width: 40px;
+}
+
+.tx-arrow {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.amount {
+  font-weight: 600;
+  color: var(--violet) !important;
+}
+
+/* =================== FOOTER =================== */
+.footer {
+  background: var(--bg-deep);
+  padding: 40px 32px;
+  text-align: center;
+}
+.footer-divider { margin-bottom: 32px; }
+.footer p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* =================== TOAST =================== */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), var(--glow);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 999;
+  max-width: 320px;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =================== SOLIDITY SECTION =================== */
+.solidity-section {
+  background: var(--bg-mid);
+  padding: 80px 0;
+}
+
+.solidity-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.solidity-panel .panel-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.field-group textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  padding: 12px 14px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-group textarea::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.field-group textarea:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124,111,247,0.15);
+}
+
+.field-group input[type="file"] {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.field-group input[type="file"]:focus {
+  border-color: var(--purple);
+  outline: none;
+}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width: 900px) {
+  .features-grid-outer {
+    grid-template-columns: 1fr;
+  }
+  .send-panel { position: static; }
+  .steps {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .step-arrow { display: none; }
+}
+
+@media (max-width: 600px) {
+  .nav-links { gap: 16px; }
+  .hero { padding: 110px 20px 60px; }
+  .hero-title { font-size: 1.8rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .section-inner { padding: 0 20px; }
+}
+</style>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <div class="logo">
+        <svg class="logo-icon" width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="11" height="11" rx="3" fill="url(#g1)"/>
+          <rect x="15" y="2" width="11" height="11" rx="3" fill="url(#g2)" opacity="0.7"/>
+          <rect x="2" y="15" width="11" height="11" rx="3" fill="url(#g2)" opacity="0.7"/>
+          <rect x="15" y="15" width="11" height="11" rx="3" fill="url(#g1)"/>
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#7c6ff7"/>
+              <stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#c084fc"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>Agya P2P</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Fitur</a>
+        <a href="#how-it-works" class="nav-link">Bagaimana cara kerjanya?</a>
+        <button class="btn-connect-nav" id="navConnectBtn">Hubungkan Dompet</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">Transfer Kripto Antar-Peer<br/>Transfer yang Mudah</h1>
+      <p class="hero-subtitle">“Kirim ETH langsung antar dompet dengan kecepatan, transparansi, dan keamanan yang didukung oleh Web3.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" id="heroConnectBtn">Hubungkan Dompet</button>
+        <button class="btn-secondary" id="heroStartBtn">Mulai Transaksi</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+      <h2 class="section-title">Bagaimana Cara Kerjanya?</h2>
+      <div class="divider"></div>
+      <div class="steps">
+        <div class="step" data-step="1">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <h3>Hubungkan Dompet</h3>
+            <p>Hubungkan dompet MetaMask Anda.</p>
+          </div>
+        </div>
+        <div class="step-arrow">&#8250;</div>
+        <div class="step" data-step="2">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <h3>Masukkan Penerima</h3>
+            <p>Input alamat dompet penerima.</p>
+          </div>
+        </div>
+        <div class="step-arrow">&#8250;</div>
+        <div class="step" data-step="3">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <h3>Kirim ETH</h3>
+            <p>Input jumlah dan kirim.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES + SEND PANEL -->
+  <section class="features-section" id="features">
+    <div class="section-inner features-grid-outer">
+      <!-- LEFT: Features -->
+      <div class="features-left">
+        <h2 class="section-title">Fitur Utama</h2>
+        <div class="divider"></div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#fi1)" stroke="url(#fi1)" stroke-width="1.5" stroke-linejoin="round"/><defs><linearGradient id="fi1" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs></svg>
+            </div>
+            <div>
+              <h4>Transfer Instan</h4>
+              <p>Transfer ETH dalam hitungan detik.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V6L12 2z" fill="url(#fi2)" opacity="0.85"/><defs><linearGradient id="fi2" x1="4" y1="2" x2="20" y2="23" gradientUnits="userSpaceOnUse"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs></svg>
+            </div>
+            <div>
+              <h4>Secure &amp; Private</h4>
+              <p>Tidak ada perantara yang terlibat.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.5l-4.9 2.7.9-5.5L4 7.8l5.5-.8L12 2z" fill="none" stroke="url(#fi3)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="url(#fi3)" opacity="0.5"/><defs><linearGradient id="fi3" x1="4" y1="2" x2="20" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs></svg>
+            </div>
+            <div>
+              <h4>Blockchain Terverifikasi</h4>
+              <p>Sepenuhnya transparan di dalam blockchain.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="url(#fi4)" opacity="0.2"/><path d="M9 12l2 2 4-4" stroke="url(#fi4)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="fi4" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#34d399"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs></svg>
+            </div>
+            <div>
+              <h4>Mudah Digunakan</h4>
+              <p>Interface yang sederhana dan intuitif.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Send ETH Panel -->
+      <div class="send-panel" id="send">
+        <h3 class="panel-title">Kirim ETH</h3>
+        <div class="field-group">
+          <label>Alamat Penerima</label>
+          <input type="text" id="recipientInput" placeholder="0x..." autocomplete="off" />
+          <span class="field-error" id="recipientError"></span>
+        </div>
+        <div class="field-group">
+          <label>Jumlah yang Dikirim</label>
+          <div class="amount-wrap">
+            <input type="number" id="amountInput" placeholder="0.1" min="0" step="0.01" />
+            <span class="eth-label">ETH</span>
+          </div>
+          <span class="field-error" id="amountError"></span>
+        </div>
+        <button class="btn-send" id="sendBtn">Kirim ETH</button>
+        <p class="status-text" id="statusText">Status: Siap untuk Dikirim</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLIDITY FILE SECTION -->
+  <section class="solidity-section">
+    <div class="section-inner">
+      <h2 class="section-title">Upload Smart Contract Solidity</h2>
+      <div class="divider"></div>
+      <div class="solidity-panel">
+        <div class="field-group">
+          <label>File Solidity (.sol)</label>
+          <input type="file" id="solidityFileInput" accept=".sol" />
+          <span class="field-error" id="fileError"></span>
+        </div>
+        <div class="field-group">
+          <label>Paste Solidity Code</label>
+          <textarea id="solidityCodeInput" placeholder="Paste your Solidity code here..." rows="10"></textarea>
+          <span class="field-error" id="codeError"></span>
+        </div>
+        <button class="btn-send" id="deployBtn">Deploy Contract</button>
+        <p class="status-text" id="deployStatus">Status: Ready to Deploy</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT TRANSACTIONS -->
+  <section class="transactions" id="transactions">
+    <div class="section-inner">
+      <h2 class="section-title">Transaksi Terbaru</h2>
+      <div class="divider"></div>
+      <div class="table-wrap">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>Dari</th>
+              <th>ke</th>
+              <th>Jumlah</th>
+            </tr>
+          </thead>
+          <tbody id="txBody">
+            <tr class="tx-row">
+              <td class="addr">0x4d5.....2aB3</td>
+              <td class="arrow-cell"><span class="tx-arrow">&#8594;</span></td>
+              <td class="addr">0x8f7....5cE9</td>
+              <td class="amount">0.2 ETH</td>
+            </tr>
+            <tr class="tx-row">
+              <td class="addr">0x1a3.....f8c8</td>
+              <td class="arrow-cell"><span class="tx-arrow">&#8594;</span></td>
+              <td class="addr">0x9bc....7dA2</td>
+              <td class="amount">0.5 ETH</td>
+            </tr>
+            <tr class="tx-row">
+              <td class="addr">0x7b2.....e9D5</td>
+              <td class="arrow-cell"><span class="tx-arrow">&#8594;</span></td>
+              <td class="addr">0x6a1....F8c1</td>
+              <td class="amount">1.0 ETH</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="divider footer-divider"></div>
+    <p>Powered by Ethereum &nbsp;•&nbsp; Secured by Smart Contracts &nbsp;•&nbsp; MetaMask Integration</p>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
